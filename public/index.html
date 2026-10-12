@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101126">
+  <title>Clearer.bc — Background Remover</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #101126;
+      --panel: #191a34;
+      --panel-light: #202141;
+      --text: #f5f5ff;
+      --muted: #a7a9c8;
+      --accent: #a78bfa;
+      --lime: #c4f56a;
+      --border: rgba(255,255,255,.11);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      background:
+        radial-gradient(ellipse at 10% 0%, rgba(124,58,237,.22), transparent 38%),
+        radial-gradient(ellipse at 95% 20%, rgba(196,245,106,.08), transparent 30%),
+        var(--bg);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    button, input, select { font: inherit; }
+
+    .shell { width: min(1080px, 100%); margin: auto; padding: 22px 18px 40px; }
+
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 14px; padding: 7px 0 34px;
+    }
+
+    .brand { display: flex; align-items: center; gap: 11px; font-weight: 800; letter-spacing: -.5px; }
+    .logo {
+      display: grid; place-items: center; width: 43px; height: 43px;
+      border-radius: 14px; color: #17172b; background: var(--lime);
+      font-size: 23px; font-weight: 950;
+    }
+    .brand-name { font-size: 20px; }
+    .brand-name span { color: var(--accent); }
+    .local-pill {
+      display: flex; align-items: center; gap: 7px; color: var(--muted);
+      font-size: 12px; border: 1px solid var(--border); padding: 8px 11px; border-radius: 99px;
+    }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--lime); }
+
+    .hero { text-align: center; max-width: 680px; margin: 0 auto 28px; }
+    .eyebrow {
+      display: inline-block; color: var(--lime); font-size: 11px; font-weight: 800;
+      letter-spacing: 2px; text-transform: uppercase; margin-bottom: 13px;
+    }
+    h1 { font-size: clamp(34px, 7vw, 58px); line-height: 1.03; letter-spacing: -2.5px; margin: 0; }
+    h1 span {
+      color: transparent; background: linear-gradient(100deg, var(--accent), #e0d5ff);
+      -webkit-background-clip: text; background-clip: text;
+    }
+    .hero p { color: var(--muted); font-size: 15px; line-height: 1.7; margin: 17px auto 0; max-width: 510px; }
+
+    .workspace {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+      align-items: stretch;
+    }
+    .panel {
+      background: rgba(25,26,52,.88); border: 1px solid var(--border);
+      border-radius: 22px; padding: 18px; min-width: 0;
+      box-shadow: 0 18px 55px rgba(0,0,0,.12);
+    }
+    .panel-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 15px; }
+    .panel-head h2 { margin: 0; font-size: 14px; }
+    .tag { color: var(--muted); font-size: 11px; background: rgba(255,255,255,.06); padding: 6px 9px; border-radius: 99px; }
+
+    .dropzone {
+      min-height: 255px; border: 1.5px dashed rgba(167,139,250,.55);
+      border-radius: 16px; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; text-align: center;
+      padding: 22px 15px; cursor: pointer; background: rgba(167,139,250,.045);
+      transition: .18s ease;
+    }
+    .dropzone:hover, .dropzone.dragging { border-color: var(--lime); background: rgba(196,245,106,.06); }
+    .upload-icon {
+      display: grid; place-items: center; width: 58px; height: 58px;
+      border-radius: 18px; background: var(--panel-light); font-size: 27px; margin-bottom: 14px;
+    }
+    .dropzone strong { font-size: 15px; }
+    .dropzone p { color: var(--muted); font-size: 12px; line-height: 1.6; margin: 8px 0 14px; }
+    .browse { color: var(--lime); font-weight: 750; font-size: 13px; }
+    .file-info { display: none; margin-top: 12px; color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
+
+    .preview {
+      min-height: 255px; border-radius: 16px; overflow: hidden;
+      display: grid; place-items: center; position: relative;
+      background-color: #e9eaf1;
+      background-image: linear-gradient(45deg,#d4d5df 25%,transparent 25%),
+        linear-gradient(-45deg,#d4d5df 25%,transparent 25%),
+        linear-gradient(45deg,transparent 75%,#d4d5df 75%),
+        linear-gradient(-45deg,transparent 75%,#d4d5df 75%);
+      background-size: 22px 22px;
+      background-position: 0 0,0 11px,11px -11px,-11px 0;
+    }
+    .preview img { display: none; max-width: 100%; max-height: 370px; width: auto; height: auto; object-fit: contain; }
+    .empty-preview { color: #65677b; text-align: center; padding: 18px; font-size: 12px; line-height: 1.6; }
+    .empty-preview span { display: block; font-size: 32px; margin-bottom: 8px; }
+
+    .settings { display: flex; gap: 12px; align-items: center; margin-top: 16px; flex-wrap: wrap; }
+    .settings label { color: var(--muted); font-size: 12px; }
+    select {
+      background: var(--panel-light); border: 1px solid var(--border); color: var(--text);
+      padding: 9px 11px; border-radius: 10px; outline: none;
+    }
+    .primary, .secondary {
+      border: 0; border-radius: 12px; padding: 13px 16px; font-weight: 800;
+      cursor: pointer; transition: transform .15s ease, opacity .15s ease;
+    }
+    .primary { width: 100%; margin-top: 15px; color: #17172b; background: var(--lime); }
+    .secondary { width: 100%; margin-top: 10px; color: var(--text); background: var(--panel-light); border: 1px solid var(--border); }
+    button:hover:not(:disabled) { transform: translateY(-1px); }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+
+    .status { min-height: 22px; margin-top: 12px; color: var(--muted); font-size: 12px; line-height: 1.5; }
+    .status.error { color: #ff9d9d; }
+    .status.success { color: var(--lime); }
+
+    .features { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-top: 22px; }
+    .feature { padding: 15px; border: 1px solid var(--border); background: rgba(25,26,52,.55); border-radius: 15px; }
+    .feature b { display: block; font-size: 12px; margin-bottom: 5px; }
+    .feature span { display: block; color: var(--muted); font-size: 11px; line-height: 1.5; }
+    footer { text-align: center; color: #777995; font-size: 11px; margin-top: 28px; line-height: 1.7; }
+
+    @media (max-width: 700px) {
+      .shell { padding: 15px 13px 30px; }
+      header { padding-bottom: 27px; }
+      .local-pill { font-size: 10px; padding: 7px 8px; }
+      .hero { margin-bottom: 23px; }
+      h1 { letter-spacing: -1.5px; }
+      .hero p { font-size: 13px; }
+      .workspace { grid-template-columns: 1fr; }
+      .panel { padding: 14px; border-radius: 18px; }
+      .dropzone, .preview { min-height: 220px; }
+      .preview img { max-height: 320px; }
+      .features { grid-template-columns: 1fr; gap: 8px; }
+      .feature { display: flex; gap: 12px; align-items: baseline; }
+      .feature b { min-width: 105px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div class="brand">
+        <div class="logo">C</div>
+        <div class="brand-name">Clearer<span>.bc</span></div>
+      </div>
+      <div class="local-pill"><span class="dot"></span> Local AI engine</div>
+    </header>
+
+    <section class="hero">
+      <div class="eyebrow">Your image. A clearer cutout.</div>
+      <h1>Remove the background.<br><span>Keep the subject.</span></h1>
+      <p>Turn your photos into transparent PNGs with Clearer.bc's AI engine, running locally on your device.</p>
+    </section>
+
+    <section class="workspace">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>01 / Upload image</h2>
+          <span class="tag">JPG · PNG · WEBP</span>
+        </div>
+
+        <label class="dropzone" id="dropzone" for="fileInput">
+          <div class="upload-icon">↑</div>
+          <strong>Drop your image here</strong>
+          <p>or choose a photo from your device<br>Maximum upload size: 15 MB</p>
+          <span class="browse">Browse files</span>
+        </label>
+        <input id="fileInput" type="file" accept="image/*" hidden>
+        <div class="file-info" id="fileInfo"></div>
+
+        <div class="settings">
+          <label for="sizeSelect">AI resolution</label>
+          <select id="sizeSelect">
+            <option value="320">320 — Faster</option>
+            <option value="384" selected>384 — Balanced</option>
+            <option value="512">512 — More detail</option>
+          </select>
+        </div>
+
+        <button class="primary" id="removeBtn" disabled>✦ Remove Background</button>
+        <div class="status" id="status" role="status" aria-live="polite">Choose a photo to get started.</div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>02 / Transparent result</h2>
+          <span class="tag" id="resultTag">PNG output</span>
+        </div>
+
+        <div class="preview" id="resultPreview">
+          <div class="empty-preview" id="emptyResult">
+            <span>✧</span>
+            Your finished cutout<br>will appear here
+          </div>
+          <img id="resultImage" alt="Background-removed result">
+        </div>
+        <button class="primary" id="downloadBtn" disabled>↓ Download transparent PNG</button>
+        <button class="secondary" id="resetBtn">Start over</button>
+      </div>
+    </section>
+
+    <section class="features">
+      <div class="feature"><b>✦ AI-powered</b><span>Uses the Clearer.bc U2-NetP model.</span></div>
+      <div class="feature"><b>◈ Transparent PNG</b><span>Preserves the alpha channel for easy reuse.</span></div>
+      <div class="feature"><b>⌁ Local processing</b><span>Uploads are sent to your local Clearer.bc server.</span></div>
+    </section>
+
+    <footer>
+      Clearer.bc · Your creativity, with fewer limits.<br>
+      Local development version — keep the Clearer.bc server running while using this page.
+    </footer>
+  </main>
+
+  <script>
+    const fileInput = document.getElementById('fileInput');
+    const dropzone = document.getElementById('dropzone');
+    const fileInfo = document.getElementById('fileInfo');
+    const removeBtn = document.getElementById('removeBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const sizeSelect = document.getElementById('sizeSelect');
+    const statusBox = document.getElementById('status');
+    const resultImage = document.getElementById('resultImage');
+    const emptyResult = document.getElementById('emptyResult');
+    const resultTag = document.getElementById('resultTag');
+
+    let selectedFile = null;
+    let originalUrl = null;
+    let resultUrl = null;
+    let busy = false;
+
+    function setStatus(message, kind = '') {
+      statusBox.textContent = message;
+      statusBox.className = 'status' + (kind ? ' ' + kind : '');
+    }
+
+    function prettySize(bytes) {
+      return bytes < 1024 * 1024
+        ? (bytes / 1024).toFixed(0) + ' KB'
+        : (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+    }
+
+    function chooseFile(file) {
+      if (!file) return;
+
+      if (!file.type.startsWith('image/')) {
+        setStatus('Please choose an image file.', 'error');
+        return;
+      }
+      if (file.size > 15 * 1024 * 1024) {
+        setStatus('That image is larger than 15 MB. Choose a smaller file.', 'error');
+        return;
+      }
+
+      selectedFile = file;
+      if (originalUrl) URL.revokeObjectURL(originalUrl);
+      originalUrl = URL.createObjectURL(file);
+
+      fileInfo.style.display = 'block';
+      fileInfo.textContent = file.name + ' · ' + prettySize(file.size);
+      removeBtn.disabled = false;
+      downloadBtn.disabled = true;
+
+      if (resultUrl) URL.revokeObjectURL(resultUrl);
+      resultUrl = null;
+      resultImage.style.display = 'none';
+      resultImage.removeAttribute('src');
+      emptyResult.style.display = 'block';
+      resultTag.textContent = 'PNG output';
+      setStatus('Image ready. Tap Remove Background to process it.');
+    }
+
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files.length) chooseFile(fileInput.files[0]);
+    });
+
+    for (const eventName of ['dragenter', 'dragover']) {
+      dropzone.addEventListener(eventName, event => {
+        event.preventDefault();
+        dropzone.classList.add('dragging');
+      });
+    }
+    for (const eventName of ['dragleave', 'drop']) {
+      dropzone.addEventListener(eventName, event => {
+        event.preventDefault();
+        dropzone.classList.remove('dragging');
+      });
+    }
+    dropzone.addEventListener('drop', event => {
+      const file = event.dataTransfer.files[0];
+      if (file) chooseFile(file);
+    });
+
+    removeBtn.addEventListener('click', async () => {
+      if (!selectedFile || busy) return;
+
+      busy = true;
+      removeBtn.disabled = true;
+      downloadBtn.disabled = true;
+      removeBtn.textContent = 'Processing…';
+      setStatus('Running AI inference on your device. Large photos may take a little while.');
+
+      const form = new FormData();
+      form.append('file', selectedFile);
+      form.append('size', sizeSelect.value);
+
+      try {
+        const response = await fetch('/remove-background', {
+          method: 'POST',
+          body: form
+        });
+
+        if (!response.ok) {
+          let message = 'Processing failed (HTTP ' + response.status + ').';
+          try {
+            const details = await response.json();
+            if (details.error) message = details.error + (details.detail ? ': ' + details.detail : '');
+          } catch (_) {}
+          throw new Error(message);
+        }
+
+        const blob = await response.blob();
+        if (!blob.type.includes('image/png')) {
+          throw new Error('The server did not return a PNG image. Please try again.');
+        }
+
+        if (resultUrl) URL.revokeObjectURL(resultUrl);
+        resultUrl = URL.createObjectURL(blob);
+        resultImage.onload = () => {
+          resultImage.style.display = 'block';
+          emptyResult.style.display = 'none';
+        };
+        resultImage.src = resultUrl;
+        downloadBtn.disabled = false;
+        resultTag.textContent = prettySize(blob.size);
+        setStatus('Done! Your background-removed image is ready to download.', 'success');
+      } catch (error) {
+        setStatus(error.message || 'Could not reach Clearer.bc. Check that the server is running.', 'error');
+      } finally {
+        busy = false;
+        removeBtn.disabled = !selectedFile;
+        removeBtn.textContent = '✦ Remove Background';
+      }
+    });
+
+    downloadBtn.addEventListener('click', () => {
+      if (!resultUrl) return;
+      const link = document.createElement('a');
+      link.href = resultUrl;
+      link.download = 'clearer-bc-result.png';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    });
+
+    resetBtn.addEventListener('click', () => {
+      selectedFile = null;
+      fileInput.value = '';
+      fileInfo.style.display = 'none';
+      removeBtn.disabled = true;
+      downloadBtn.disabled = true;
+      if (originalUrl) URL.revokeObjectURL(originalUrl);
+      if (resultUrl) URL.revokeObjectURL(resultUrl);
+      originalUrl = null;
+      resultUrl = null;
+      resultImage.removeAttribute('src');
+      resultImage.style.display = 'none';
+      emptyResult.style.display = 'block';
+      resultTag.textContent = 'PNG output';
+      setStatus('Choose a photo to get started.');
+    });
+  </script>
+</body>
+</html>
