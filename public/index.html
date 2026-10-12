@@ -1,391 +1,163 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#101126">
-  <title>Clearer.bc — Background Remover</title>
-  <style>
-    :root {
-      color-scheme: dark;
-      --bg: #101126;
-      --panel: #191a34;
-      --panel-light: #202141;
-      --text: #f5f5ff;
-      --muted: #a7a9c8;
-      --accent: #a78bfa;
-      --lime: #c4f56a;
-      --border: rgba(255,255,255,.11);
-    }
-
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      color: var(--text);
-      background:
-        radial-gradient(ellipse at 10% 0%, rgba(124,58,237,.22), transparent 38%),
-        radial-gradient(ellipse at 95% 20%, rgba(196,245,106,.08), transparent 30%),
-        var(--bg);
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
-
-    button, input, select { font: inherit; }
-
-    .shell { width: min(1080px, 100%); margin: auto; padding: 22px 18px 40px; }
-
-    header {
-      display: flex; align-items: center; justify-content: space-between;
-      gap: 14px; padding: 7px 0 34px;
-    }
-
-    .brand { display: flex; align-items: center; gap: 11px; font-weight: 800; letter-spacing: -.5px; }
-    .logo {
-      display: grid; place-items: center; width: 43px; height: 43px;
-      border-radius: 14px; color: #17172b; background: var(--lime);
-      font-size: 23px; font-weight: 950;
-    }
-    .brand-name { font-size: 20px; }
-    .brand-name span { color: var(--accent); }
-    .local-pill {
-      display: flex; align-items: center; gap: 7px; color: var(--muted);
-      font-size: 12px; border: 1px solid var(--border); padding: 8px 11px; border-radius: 99px;
-    }
-    .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--lime); }
-
-    .hero { text-align: center; max-width: 680px; margin: 0 auto 28px; }
-    .eyebrow {
-      display: inline-block; color: var(--lime); font-size: 11px; font-weight: 800;
-      letter-spacing: 2px; text-transform: uppercase; margin-bottom: 13px;
-    }
-    h1 { font-size: clamp(34px, 7vw, 58px); line-height: 1.03; letter-spacing: -2.5px; margin: 0; }
-    h1 span {
-      color: transparent; background: linear-gradient(100deg, var(--accent), #e0d5ff);
-      -webkit-background-clip: text; background-clip: text;
-    }
-    .hero p { color: var(--muted); font-size: 15px; line-height: 1.7; margin: 17px auto 0; max-width: 510px; }
-
-    .workspace {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
-      align-items: stretch;
-    }
-    .panel {
-      background: rgba(25,26,52,.88); border: 1px solid var(--border);
-      border-radius: 22px; padding: 18px; min-width: 0;
-      box-shadow: 0 18px 55px rgba(0,0,0,.12);
-    }
-    .panel-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 15px; }
-    .panel-head h2 { margin: 0; font-size: 14px; }
-    .tag { color: var(--muted); font-size: 11px; background: rgba(255,255,255,.06); padding: 6px 9px; border-radius: 99px; }
-
-    .dropzone {
-      min-height: 255px; border: 1.5px dashed rgba(167,139,250,.55);
-      border-radius: 16px; display: flex; flex-direction: column;
-      align-items: center; justify-content: center; text-align: center;
-      padding: 22px 15px; cursor: pointer; background: rgba(167,139,250,.045);
-      transition: .18s ease;
-    }
-    .dropzone:hover, .dropzone.dragging { border-color: var(--lime); background: rgba(196,245,106,.06); }
-    .upload-icon {
-      display: grid; place-items: center; width: 58px; height: 58px;
-      border-radius: 18px; background: var(--panel-light); font-size: 27px; margin-bottom: 14px;
-    }
-    .dropzone strong { font-size: 15px; }
-    .dropzone p { color: var(--muted); font-size: 12px; line-height: 1.6; margin: 8px 0 14px; }
-    .browse { color: var(--lime); font-weight: 750; font-size: 13px; }
-    .file-info { display: none; margin-top: 12px; color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
-
-    .preview {
-      min-height: 255px; border-radius: 16px; overflow: hidden;
-      display: grid; place-items: center; position: relative;
-      background-color: #e9eaf1;
-      background-image: linear-gradient(45deg,#d4d5df 25%,transparent 25%),
-        linear-gradient(-45deg,#d4d5df 25%,transparent 25%),
-        linear-gradient(45deg,transparent 75%,#d4d5df 75%),
-        linear-gradient(-45deg,transparent 75%,#d4d5df 75%);
-      background-size: 22px 22px;
-      background-position: 0 0,0 11px,11px -11px,-11px 0;
-    }
-    .preview img { display: none; max-width: 100%; max-height: 370px; width: auto; height: auto; object-fit: contain; }
-    .empty-preview { color: #65677b; text-align: center; padding: 18px; font-size: 12px; line-height: 1.6; }
-    .empty-preview span { display: block; font-size: 32px; margin-bottom: 8px; }
-
-    .settings { display: flex; gap: 12px; align-items: center; margin-top: 16px; flex-wrap: wrap; }
-    .settings label { color: var(--muted); font-size: 12px; }
-    select {
-      background: var(--panel-light); border: 1px solid var(--border); color: var(--text);
-      padding: 9px 11px; border-radius: 10px; outline: none;
-    }
-    .primary, .secondary {
-      border: 0; border-radius: 12px; padding: 13px 16px; font-weight: 800;
-      cursor: pointer; transition: transform .15s ease, opacity .15s ease;
-    }
-    .primary { width: 100%; margin-top: 15px; color: #17172b; background: var(--lime); }
-    .secondary { width: 100%; margin-top: 10px; color: var(--text); background: var(--panel-light); border: 1px solid var(--border); }
-    button:hover:not(:disabled) { transform: translateY(-1px); }
-    button:disabled { opacity: .5; cursor: not-allowed; }
-
-    .status { min-height: 22px; margin-top: 12px; color: var(--muted); font-size: 12px; line-height: 1.5; }
-    .status.error { color: #ff9d9d; }
-    .status.success { color: var(--lime); }
-
-    .features { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-top: 22px; }
-    .feature { padding: 15px; border: 1px solid var(--border); background: rgba(25,26,52,.55); border-radius: 15px; }
-    .feature b { display: block; font-size: 12px; margin-bottom: 5px; }
-    .feature span { display: block; color: var(--muted); font-size: 11px; line-height: 1.5; }
-    footer { text-align: center; color: #777995; font-size: 11px; margin-top: 28px; line-height: 1.7; }
-
-    @media (max-width: 700px) {
-      .shell { padding: 15px 13px 30px; }
-      header { padding-bottom: 27px; }
-      .local-pill { font-size: 10px; padding: 7px 8px; }
-      .hero { margin-bottom: 23px; }
-      h1 { letter-spacing: -1.5px; }
-      .hero p { font-size: 13px; }
-      .workspace { grid-template-columns: 1fr; }
-      .panel { padding: 14px; border-radius: 18px; }
-      .dropzone, .preview { min-height: 220px; }
-      .preview img { max-height: 320px; }
-      .features { grid-template-columns: 1fr; gap: 8px; }
-      .feature { display: flex; gap: 12px; align-items: baseline; }
-      .feature b { min-width: 105px; }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff">
+<title>Clearer.bc — Background Remover</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#fff;color:#202124;font-family:Arial,Helvetica,sans-serif}
+header{height:70px;border-bottom:1px solid #eee;display:flex;align-items:center;padding:0 6%;font-size:22px;font-weight:700}
+.logo{color:#2864e8}
+main{max-width:850px;margin:55px auto;padding:0 20px;text-align:center}
+h1{font-size:clamp(30px,6vw,48px);letter-spacing:-1.5px;margin:0 0 14px}
+.intro{color:#666;font-size:16px;line-height:1.6;margin:0 auto 32px}
+.upload{border:2px dashed #c9d2e3;border-radius:16px;padding:35px 18px;background:#fafbfe;cursor:pointer}
+.upload:hover{border-color:#2864e8;background:#f5f8ff}
+.upload-icon{font-size:38px;color:#2864e8;margin-bottom:12px}
+.upload strong{display:block;font-size:18px;margin-bottom:8px}
+.upload p{color:#777;font-size:14px}
+input[type=file]{display:none}
+button{border:0;border-radius:9px;padding:14px 22px;font-size:15px;font-weight:700;cursor:pointer}
+button:disabled{opacity:.45;cursor:not-allowed}
+.primary{background:#2864e8;color:#fff;width:100%;margin-top:16px}
+.secondary{background:#f0f2f5;color:#222;margin-top:12px}
+.controls{display:flex;justify-content:center;align-items:center;gap:10px;margin-top:18px;color:#555;font-size:14px}
+select{padding:8px;border:1px solid #ddd;border-radius:7px;background:white}
+#status{min-height:24px;margin:18px 0;color:#555;font-size:14px;overflow-wrap:anywhere}
+#status.error{color:#c62828}
+.result{margin-top:25px}
+.result img{display:none;max-width:100%;max-height:500px;object-fit:contain;border:1px solid #eee;border-radius:10px;background-color:#f4f4f4;background-image:linear-gradient(45deg,#ddd 25%,transparent 25%),linear-gradient(-45deg,#ddd 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#ddd 75%),linear-gradient(-45deg,transparent 75%,#ddd 75%);background-size:20px 20px;background-position:0 0,0 10px,10px -10px,-10px 0}
+footer{padding:30px 15px;text-align:center;color:#888;font-size:12px}
+@media(min-width:650px){main{margin-top:70px}.upload{padding:48px 25px}}
+</style>
 </head>
 <body>
-  <main class="shell">
-    <header>
-      <div class="brand">
-        <div class="logo">C</div>
-        <div class="brand-name">Clearer<span>.bc</span></div>
-      </div>
-      <div class="local-pill"><span class="dot"></span> Local AI engine</div>
-    </header>
+<header><span class="logo">Clearer</span><span>.bc</span></header>
+<main>
+<h1>Remove image backgrounds</h1>
+<p class="intro">Upload a photo and get a transparent PNG in seconds.</p>
 
-    <section class="hero">
-      <div class="eyebrow">Your image. A clearer cutout.</div>
-      <h1>Remove the background.<br><span>Keep the subject.</span></h1>
-      <p>Turn your photos into transparent PNGs with Clearer.bc's AI engine, running locally on your device.</p>
-    </section>
+<label class="upload" for="photo">
+  <div class="upload-icon">↑</div>
+  <strong>Choose an image to upload</strong>
+  <p>JPG, PNG or WEBP · Maximum 15 MB</p>
+  <span style="color:#2864e8;font-weight:bold">Browse image</span>
+</label>
+<input id="photo" type="file" accept="image/jpeg,image/png,image/webp">
 
-    <section class="workspace">
-      <div class="panel">
-        <div class="panel-head">
-          <h2>01 / Upload image</h2>
-          <span class="tag">JPG · PNG · WEBP</span>
-        </div>
+<div class="controls">
+<label for="size">Processing quality</label>
+<select id="size">
+<option value="320">Faster</option>
+<option value="384" selected>Balanced</option>
+<option value="512">More detail</option>
+</select>
+</div>
 
-        <label class="dropzone" id="dropzone" for="fileInput">
-          <div class="upload-icon">↑</div>
-          <strong>Drop your image here</strong>
-          <p>or choose a photo from your device<br>Maximum upload size: 15 MB</p>
-          <span class="browse">Browse files</span>
-        </label>
-        <input id="fileInput" type="file" accept="image/*" hidden>
-        <div class="file-info" id="fileInfo"></div>
+<button id="remove" class="primary" disabled>Remove background</button>
+<div id="status" role="status">Choose an image to get started.</div>
 
-        <div class="settings">
-          <label for="sizeSelect">AI resolution</label>
-          <select id="sizeSelect">
-            <option value="320">320 — Faster</option>
-            <option value="384" selected>384 — Balanced</option>
-            <option value="512">512 — More detail</option>
-          </select>
-        </div>
+<div class="result">
+<img id="preview" alt="Background removed result">
+<br>
+<button id="download" class="secondary" hidden>Download transparent PNG</button>
+</div>
+</main>
+<footer>Clearer.bc · Simple image background removal</footer>
 
-        <button class="primary" id="removeBtn" disabled>✦ Remove Background</button>
-        <div class="status" id="status" role="status" aria-live="polite">Choose a photo to get started.</div>
-      </div>
+<script>
+const API = 'https://clearer-bc.onrender.com';
+const photo = document.getElementById('photo');
+const removeBtn = document.getElementById('remove');
+const downloadBtn = document.getElementById('download');
+const statusBox = document.getElementById('status');
+const preview = document.getElementById('preview');
+let resultUrl = null;
 
-      <div class="panel">
-        <div class="panel-head">
-          <h2>02 / Transparent result</h2>
-          <span class="tag" id="resultTag">PNG output</span>
-        </div>
+photo.addEventListener('change', () => {
+  const file = photo.files[0];
+  preview.style.display = 'none';
+  downloadBtn.hidden = true;
+  if (resultUrl) URL.revokeObjectURL(resultUrl);
+  resultUrl = null;
 
-        <div class="preview" id="resultPreview">
-          <div class="empty-preview" id="emptyResult">
-            <span>✧</span>
-            Your finished cutout<br>will appear here
-          </div>
-          <img id="resultImage" alt="Background-removed result">
-        </div>
-        <button class="primary" id="downloadBtn" disabled>↓ Download transparent PNG</button>
-        <button class="secondary" id="resetBtn">Start over</button>
-      </div>
-    </section>
+  if (!file) {
+    removeBtn.disabled = true;
+    statusBox.textContent = 'Choose an image to get started.';
+    return;
+  }
+  if (!file.type.startsWith('image/') || file.size > 15 * 1024 * 1024) {
+    photo.value = '';
+    removeBtn.disabled = true;
+    statusBox.textContent = 'Choose a valid image smaller than 15 MB.';
+    statusBox.className = 'error';
+    return;
+  }
+  removeBtn.disabled = false;
+  statusBox.className = '';
+  statusBox.textContent = 'Selected: ' + file.name;
+});
 
-    <section class="features">
-      <div class="feature"><b>✦ AI-powered</b><span>Uses the Clearer.bc U2-NetP model.</span></div>
-      <div class="feature"><b>◈ Transparent PNG</b><span>Preserves the alpha channel for easy reuse.</span></div>
-      <div class="feature"><b>⌁ Local processing</b><span>Uploads are sent to your local Clearer.bc server.</span></div>
-    </section>
+removeBtn.addEventListener('click', async () => {
+  const file = photo.files[0];
+  if (!file) return;
 
-    <footer>
-      Clearer.bc · Your creativity, with fewer limits.<br>
-      Local development version — keep the Clearer.bc server running while using this page.
-    </footer>
-  </main>
+  removeBtn.disabled = true;
+  removeBtn.textContent = 'Processing…';
+  statusBox.className = '';
+  statusBox.textContent = 'Processing your image. This may take a little while.';
+  downloadBtn.hidden = true;
 
-  <script>
-    const fileInput = document.getElementById('fileInput');
-    const dropzone = document.getElementById('dropzone');
-    const fileInfo = document.getElementById('fileInfo');
-    const removeBtn = document.getElementById('removeBtn');
-    const downloadBtn = document.getElementById('downloadBtn');
-    const resetBtn = document.getElementById('resetBtn');
-    const sizeSelect = document.getElementById('sizeSelect');
-    const statusBox = document.getElementById('status');
-    const resultImage = document.getElementById('resultImage');
-    const emptyResult = document.getElementById('emptyResult');
-    const resultTag = document.getElementById('resultTag');
+  const form = new FormData();
+  form.append('file', file);
+  form.append('size', document.getElementById('size').value);
 
-    let selectedFile = null;
-    let originalUrl = null;
-    let resultUrl = null;
-    let busy = false;
-
-    function setStatus(message, kind = '') {
-      statusBox.textContent = message;
-      statusBox.className = 'status' + (kind ? ' ' + kind : '');
-    }
-
-    function prettySize(bytes) {
-      return bytes < 1024 * 1024
-        ? (bytes / 1024).toFixed(0) + ' KB'
-        : (bytes / (1024 * 1024)).toFixed(2) + ' MB';
-    }
-
-    function chooseFile(file) {
-      if (!file) return;
-
-      if (!file.type.startsWith('image/')) {
-        setStatus('Please choose an image file.', 'error');
-        return;
-      }
-      if (file.size > 15 * 1024 * 1024) {
-        setStatus('That image is larger than 15 MB. Choose a smaller file.', 'error');
-        return;
-      }
-
-      selectedFile = file;
-      if (originalUrl) URL.revokeObjectURL(originalUrl);
-      originalUrl = URL.createObjectURL(file);
-
-      fileInfo.style.display = 'block';
-      fileInfo.textContent = file.name + ' · ' + prettySize(file.size);
-      removeBtn.disabled = false;
-      downloadBtn.disabled = true;
-
-      if (resultUrl) URL.revokeObjectURL(resultUrl);
-      resultUrl = null;
-      resultImage.style.display = 'none';
-      resultImage.removeAttribute('src');
-      emptyResult.style.display = 'block';
-      resultTag.textContent = 'PNG output';
-      setStatus('Image ready. Tap Remove Background to process it.');
-    }
-
-    fileInput.addEventListener('change', () => {
-      if (fileInput.files.length) chooseFile(fileInput.files[0]);
+  try {
+    const response = await fetch(API + '/remove-background', {
+      method: 'POST',
+      body: form
     });
 
-    for (const eventName of ['dragenter', 'dragover']) {
-      dropzone.addEventListener(eventName, event => {
-        event.preventDefault();
-        dropzone.classList.add('dragging');
-      });
-    }
-    for (const eventName of ['dragleave', 'drop']) {
-      dropzone.addEventListener(eventName, event => {
-        event.preventDefault();
-        dropzone.classList.remove('dragging');
-      });
-    }
-    dropzone.addEventListener('drop', event => {
-      const file = event.dataTransfer.files[0];
-      if (file) chooseFile(file);
-    });
-
-    removeBtn.addEventListener('click', async () => {
-      if (!selectedFile || busy) return;
-
-      busy = true;
-      removeBtn.disabled = true;
-      downloadBtn.disabled = true;
-      removeBtn.textContent = 'Processing…';
-      setStatus('Running AI inference on your device. Large photos may take a little while.');
-
-      const form = new FormData();
-      form.append('file', selectedFile);
-      form.append('size', sizeSelect.value);
-
+    if (!response.ok) {
+      let detail = '';
       try {
-        const response = await fetch('/remove-background', {
-          method: 'POST',
-          body: form
-        });
+        const data = await response.json();
+        detail = data.detail || data.error || '';
+      } catch (_) {}
+      throw new Error('Request failed (HTTP ' + response.status + ')' +
+        (detail ? ': ' + detail : ''));
+    }
 
-        if (!response.ok) {
-          let message = 'Processing failed (HTTP ' + response.status + ').';
-          try {
-            const details = await response.json();
-            if (details.error) message = details.error + (details.detail ? ': ' + details.detail : '');
-          } catch (_) {}
-          throw new Error(message);
-        }
+    const blob = await response.blob();
+    if (!blob.type.includes('image/png')) {
+      throw new Error('The server did not return a PNG image.');
+    }
 
-        const blob = await response.blob();
-        if (!blob.type.includes('image/png')) {
-          throw new Error('The server did not return a PNG image. Please try again.');
-        }
+    if (resultUrl) URL.revokeObjectURL(resultUrl);
+    resultUrl = URL.createObjectURL(blob);
+    preview.src = resultUrl;
+    preview.style.display = 'inline-block';
+    downloadBtn.hidden = false;
+    statusBox.textContent = 'Done! Your transparent image is ready.';
+  } catch (error) {
+    statusBox.className = 'error';
+    statusBox.textContent = error.message +
+      '. If the server is waking up, wait a minute and try again.';
+  } finally {
+    removeBtn.disabled = false;
+    removeBtn.textContent = 'Remove background';
+  }
+});
 
-        if (resultUrl) URL.revokeObjectURL(resultUrl);
-        resultUrl = URL.createObjectURL(blob);
-        resultImage.onload = () => {
-          resultImage.style.display = 'block';
-          emptyResult.style.display = 'none';
-        };
-        resultImage.src = resultUrl;
-        downloadBtn.disabled = false;
-        resultTag.textContent = prettySize(blob.size);
-        setStatus('Done! Your background-removed image is ready to download.', 'success');
-      } catch (error) {
-        setStatus(error.message || 'Could not reach Clearer.bc. Check that the server is running.', 'error');
-      } finally {
-        busy = false;
-        removeBtn.disabled = !selectedFile;
-        removeBtn.textContent = '✦ Remove Background';
-      }
-    });
-
-    downloadBtn.addEventListener('click', () => {
-      if (!resultUrl) return;
-      const link = document.createElement('a');
-      link.href = resultUrl;
-      link.download = 'clearer-bc-result.png';
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-    });
-
-    resetBtn.addEventListener('click', () => {
-      selectedFile = null;
-      fileInput.value = '';
-      fileInfo.style.display = 'none';
-      removeBtn.disabled = true;
-      downloadBtn.disabled = true;
-      if (originalUrl) URL.revokeObjectURL(originalUrl);
-      if (resultUrl) URL.revokeObjectURL(resultUrl);
-      originalUrl = null;
-      resultUrl = null;
-      resultImage.removeAttribute('src');
-      resultImage.style.display = 'none';
-      emptyResult.style.display = 'block';
-      resultTag.textContent = 'PNG output';
-      setStatus('Choose a photo to get started.');
-    });
-  </script>
+downloadBtn.addEventListener('click', () => {
+  if (!resultUrl) return;
+  const a = document.createElement('a');
+  a.href = resultUrl;
+  a.download = 'clearer-bc-result.png';
+  a.click();
+});
+</script>
 </body>
 </html>
