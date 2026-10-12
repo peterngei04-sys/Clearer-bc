@@ -1,0 +1,22 @@
+# Python environments and caches
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+
+# Test photos and generated results
+input/*
+output/*
+
+# Backup copies
+app/*backup*
+app/*.before_web
+
+# Temporary files
+*.upload
+.DS_Store
