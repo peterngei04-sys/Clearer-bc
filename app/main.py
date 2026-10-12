@@ -11,8 +11,8 @@ from multipart import parse_form
 
 from app.clearer_engine import remove_background
 
-HOST = "127.0.0.1"
-PORT = 8000
+HOST = "0.0.0.0"
+PORT = int(os.environ.get("PORT", "8000"))
 MAX_UPLOAD = 15 * 1024 * 1024
 OUTPUT_DIR = Path("output")
 MODEL_PATH = Path("app/models/u2netp.pth")
