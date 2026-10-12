@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/health",
+      "destination": "https://clearer-bc.onrender.com/health"
+    },
+    {
+      "source": "/remove-background",
+      "destination": "https://clearer-bc.onrender.com/remove-background"
+    }
+  ]
+}
