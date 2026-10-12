@@ -13,7 +13,7 @@ header{height:70px;border-bottom:1px solid #eee;display:flex;align-items:center;
 main{max-width:850px;margin:55px auto;padding:0 20px;text-align:center}
 h1{font-size:clamp(30px,6vw,48px);letter-spacing:-1.5px;margin:0 0 14px}
 .intro{color:#666;font-size:16px;line-height:1.6;margin:0 auto 32px}
-.upload{border:2px dashed #c9d2e3;border-radius:16px;padding:35px 18px;background:#fafbfe;cursor:pointer}
+.upload{display:block;width:100%;border:2px dashed #c9d2e3;border-radius:16px;padding:35px 18px;background:#fafbfe;cursor:pointer}
 .upload:hover{border-color:#2864e8;background:#f5f8ff}
 .upload-icon{font-size:38px;color:#2864e8;margin-bottom:12px}
 .upload strong{display:block;font-size:18px;margin-bottom:8px}
@@ -50,8 +50,8 @@ footer{padding:30px 15px;text-align:center;color:#888;font-size:12px}
 <div class="controls">
 <label for="size">Processing quality</label>
 <select id="size">
-<option value="320">Faster</option>
-<option value="384" selected>Balanced</option>
+<option value="320" selected>Faster</option>
+<option value="384">Balanced</option>
 <option value="512">More detail</option>
 </select>
 </div>
