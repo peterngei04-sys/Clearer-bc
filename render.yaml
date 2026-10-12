@@ -1,0 +1,8 @@
+services:
+  - type: web
+    name: clearer-bc-api
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python -m app.main
+    healthCheckPath: /health
